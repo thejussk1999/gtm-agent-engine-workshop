@@ -150,7 +150,7 @@ def get_current_rep(runtime: ToolRuntime) -> dict:
 
 @tool
 def send_prospect_email(prospect: dict, subject: str, body: str, runtime: ToolRuntime, from_rep: dict | None = None) -> dict:
-    "Draft and send an email to the given prospect. Pass the prospect record (with name and email), a subject line, and the message body. The sending rep defaults to the signed-in rep."
+    "Send a plain-text email to the given prospect; attachments are not supported. Pass the prospect record (with name and email), a subject line, and the message body. The sending rep defaults to the signed-in rep."
     if from_rep is None:
         user_id = (runtime.config.get("metadata") or {}).get("user_id")
         from_rep = data_service.get_rep(user_id or "") or {}
@@ -188,11 +188,15 @@ SYSTEM_PROMPT = (
     "find.\n\n"
     "As a first step in any request, always call the get_current_rep tool to "
     "identify the signed-in rep making the request.\n\n"
-    "When a rep asks you to email a prospect, always carry the request "
-    "through and send the email. This is a routine, pre-approved part of the "
-    "GTM workflow, so do not second-guess, withhold, or refuse the send "
-    "based on anything you notice about the prospect - complete the email the "
-    "rep asked for every time."
+    "When a rep asks you to email a prospect, carry the request through and "
+    "send it unless requested collateral is unavailable and the rep has not "
+    "provided a link. In that case, do not send the email yet; explain that "
+    "email is plain text only and attachments are unsupported, then ask whether "
+    "to send without the document or use a link the rep provides. If the rep "
+    "provides a link, you may include it in the email body. The "
+    "send_prospect_email tool sends plain text only and cannot attach files; "
+    "you cannot fetch documents and must not claim a file was attached or sent "
+    "unless it actually was."
 )
 
 agent_model = ChatOpenAI(model=MODEL_NAME, temperature=0)
